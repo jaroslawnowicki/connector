@@ -1,0 +1,26 @@
+app:
+  rest:
+    connectTimeoutInMillis: 500
+    readTimeoutInMillis: 500
+  kafka:
+    bootstrapAddress:
+
+
+spring:
+  data:
+    mongodb:
+      authentication-database:
+      username:
+      password:
+      database: resource
+      port: 27017
+      host:
+  kafka:
+    streams:
+      application-id: resource-stream
+      client-id: resource-stream
+      properties:
+        default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+        default.value.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+      replication-factor: 1
+

@@ -1,0 +1,76 @@
+version: '3.9'
+
+services:
+  connector:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    image: connector
+    ports:
+      - 8080:8080
+    networks:
+      - connector-network
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - kafka
+      - mongodb
+      - zookeeper
+  mongodb:
+    image: mongo
+    restart: unless-stopped
+    ports:
+      - 27017:27017
+    volumes:
+      - $PWD/apps/mongo:/data/db
+    networks:
+      - connector-network
+    environment:
+      - MONGO_INITDB_DATABASE=resource
+      - MONGO_INITDB_ROOT_USERNAME=jarek
+      - MONGO_INITDB_ROOT_PASSWORD=jarek
+  mongo-express:
+    image: mongo-express
+    restart: unless-stopped
+    depends_on:
+      - mongodb
+    ports:
+      - 8081:8081
+    networks:
+      - connector-network
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=mongodb
+      - ME_CONFIG_MONGODB_PORT=27017
+      - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
+      - ME_CONFIG_MONGODB_AUTH_DATABASE=admin
+      - ME_CONFIG_MONGODB_AUTH_USERNAME=jarek
+      - ME_CONFIG_MONGODB_AUTH_PASSWORD=jarek
+      - ME_CONFIG_BASICAUTH_USERNAME=jarek
+      - ME_CONFIG_BASICAUTH_PASSWORD=jarek
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=jarek
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=jarek
+  zookeeper:
+    image: 'bitnami/zookeeper:latest'
+    ports:
+      - 2181:2181
+    networks:
+      - connector-network
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+  kafka:
+    image: 'bitnami/kafka:latest'
+    ports:
+      - 9092:9092
+    networks:
+      - connector-network
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    depends_on:
+      - zookeeper
+networks:
+  connector-network:
+    driver: bridge
